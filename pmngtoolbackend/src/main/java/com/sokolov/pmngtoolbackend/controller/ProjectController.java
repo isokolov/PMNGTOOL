@@ -1,6 +1,8 @@
 package com.sokolov.pmngtoolbackend.controller;
 
+import com.sokolov.pmngtoolbackend.entity.Backlog;
 import com.sokolov.pmngtoolbackend.entity.Project;
+import com.sokolov.pmngtoolbackend.repository.BacklogRepository;
 import com.sokolov.pmngtoolbackend.service.ProjectService;
 import com.sokolov.pmngtoolbackend.service.ValidationRequestService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,12 +18,16 @@ import javax.validation.Valid;
 public class ProjectController {
 
     private ProjectService projectService;
+    private BacklogRepository backlogRepository;
     private ValidationRequestService validationRequestService;
+
 
     @Autowired
     public ProjectController(ProjectService projectService,
+           BacklogRepository backlogRepository,
            ValidationRequestService validationRequestService) {
         this.projectService = projectService;
+        this.backlogRepository = backlogRepository;
         this.validationRequestService = validationRequestService;
     }
 
@@ -31,7 +37,24 @@ public class ProjectController {
         if (errorMap != null) {
             return errorMap;
         }
-        Project newProject = projectService.saveOrUpdateProject(project);
+        Backlog backlog = new Backlog();
+        backlog.setProjectIdentifier(project.getProjectIdentifier());
+        project.setBacklog(backlog);
+        backlog.setProject(project);
+        Project newProject = projectService.createProject(project);
+        return new ResponseEntity(newProject, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/project")
+    public ResponseEntity<?> updateProject(@Valid @RequestBody Project project, BindingResult result) {
+        ResponseEntity<?> errorMap = validationRequestService.validateService(result);
+        if (errorMap != null) {
+            return errorMap;
+        }
+        Backlog backlog = backlogRepository.findByProjectIdentifier(project.getProjectIdentifier());
+        project.setBacklog(backlog);
+        Project newProject = projectService.updateProject(project);
+        //newProject.setBacklog(project.getBacklog());
         return new ResponseEntity(newProject, HttpStatus.CREATED);
     }
 

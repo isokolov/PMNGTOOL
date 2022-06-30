@@ -1,6 +1,7 @@
 package com.sokolov.pmngtoolbackend.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
@@ -37,6 +38,10 @@ public class Project {
     private Date created_At;
     @JsonFormat(pattern = "yyyy-mm-dd")
     private Date updated_At;
+
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinColumn(name = "backlog_id", nullable = false)
+    private Backlog backlog;
 
     @PrePersist
     protected void onCreate(){
