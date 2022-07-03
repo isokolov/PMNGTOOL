@@ -4,12 +4,14 @@ import com.sokolov.pmngtoolbackend.entity.Backlog;
 import com.sokolov.pmngtoolbackend.entity.Project;
 import com.sokolov.pmngtoolbackend.entity.Task;
 import com.sokolov.pmngtoolbackend.exception.ProjectIdException;
+import com.sokolov.pmngtoolbackend.exception.TaskException;
 import com.sokolov.pmngtoolbackend.repository.BacklogRepository;
 import com.sokolov.pmngtoolbackend.repository.ProjectRepository;
 import com.sokolov.pmngtoolbackend.repository.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -74,5 +76,52 @@ public class TaskService {
                     + " doesn't exists");
         }
         return taskRepository.findByProjectIdentifierOrderByPriority(backlog_id);
+    }
+
+    public Task findTaskByProjectSequence(String backlog_id, String task_id){
+
+        Optional<Project> optionalProject = projectRepository.findByProjectIdentifier(backlog_id);
+        if (optionalProject.isEmpty()) {
+            throw new ProjectIdException("Project with identifier " + backlog_id
+                    + " doesn't exists");
+        }
+        Optional<Task> optTask = taskRepository.findByProjectSequence(task_id);
+        if (optTask.isEmpty()) {
+            throw new TaskException(("Task with taskSequence: " + task_id + " doesn't exist"));
+        }
+
+        return optTask.get();
+    }
+
+    public Task updateTaskByProjectSequence(Task updatedTask, String backlog_id, String task_id){
+
+        Backlog backlog = backlogRepository.findByProjectIdentifier(backlog_id);
+        Optional<Project> optionalProject = projectRepository.findByProjectIdentifier(backlog_id);
+        if (optionalProject.isEmpty()) {
+            throw new ProjectIdException("Project with identifier " + backlog_id
+                    + " doesn't exists");
+        }
+
+        Optional<Task> optTask = taskRepository.findByProjectSequence(task_id);
+        if (optTask.isEmpty()) {
+            throw new TaskException(("Task with taskSequence: " + task_id + " doesn't exist"));
+        }
+        // copy values from updatedTask to the new Task
+        Task projectTask = optTask.get();
+
+        projectTask = updatedTask;
+
+        return taskRepository.save(projectTask);
+    }
+
+    public void deleteTaskByProjectSequence(String backlog_id, String pt_id){
+        Task projectTask = findTaskByProjectSequence(backlog_id, pt_id);
+
+        /* Backlog backlog = projectTask.getBacklog();
+        List<Task> pts = backlog.getTasks();
+        pts.remove(projectTask);
+        backlogRepository.save(backlog); */
+
+        taskRepository.delete(projectTask);
     }
 }

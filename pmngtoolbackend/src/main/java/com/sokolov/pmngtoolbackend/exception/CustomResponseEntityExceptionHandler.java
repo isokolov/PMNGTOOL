@@ -18,4 +18,12 @@ public class CustomResponseEntityExceptionHandler  extends ResponseEntityExcepti
         ProjectExceptionResponse response = new ProjectExceptionResponse(ex.getMessage());
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler
+    public ResponseEntity<Object> createTaskExceptionResponse(TaskException tex,
+                                                              WebRequest request) {
+        TaskExceptionResponse taskExceptionResponse =
+                new TaskExceptionResponse(tex.getMessage());
+        return new ResponseEntity<>(taskExceptionResponse, HttpStatus.BAD_REQUEST);
+    }
 }
